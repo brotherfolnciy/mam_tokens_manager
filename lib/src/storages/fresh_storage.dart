@@ -22,6 +22,11 @@ class TokensStorage extends TokenStorage<OAuth2Token> {
   // об изменении refresh токена, не использовать в иных операциях
   String? _refreshToken;
 
+  void setMockInitialValues(Map<String, String> values) {
+    // ignore: invalid_use_of_visible_for_testing_member
+    FlutterSecureStorage.setMockInitialValues(values);
+  }
+
   @override
   Future<void> delete() async {
     if (_accessToken?.isEmpty ?? false) _accessToken = null;

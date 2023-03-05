@@ -106,6 +106,14 @@ class TokensManager {
   /// Получение экземпляра TokensStorage по типу токена
   ///
 
-  static TokensStorage storageByType(TokenType type) =>
-      _storages.where((e) => e.type == type).first;
+  static TokensStorage storageByType(
+    TokenType type, {
+    Map<String, String>? mockInitialValues,
+  }) {
+    final storage = _storages.where((e) => e.type == type).first;
+    if (mockInitialValues != null) {
+      storage.setMockInitialValues(mockInitialValues);
+    }
+    return storage;
+  }
 }
