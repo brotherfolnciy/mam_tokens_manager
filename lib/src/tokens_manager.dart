@@ -13,6 +13,12 @@ class TokensManager {
   static final StreamController<TokenType> _tokenRefreshErrorStreamController =
       StreamController<TokenType>.broadcast();
 
+  static void setMockInitialValues(Map<String, String> values) {
+    for (var e in _storages) {
+      e.setMockInitialValues(values);
+    }
+  }
+
   ///
   /// Приходят данные, когда где-то произошла ошибка рефреша какого-либо токена
   ///
@@ -109,11 +115,6 @@ class TokensManager {
   static TokensStorage storageByType(
     TokenType type, {
     Map<String, String>? mockInitialValues,
-  }) {
-    final storage = _storages.where((e) => e.type == type).first;
-    if (mockInitialValues != null) {
-      storage.setMockInitialValues(mockInitialValues);
-    }
-    return storage;
-  }
+  }) =>
+      _storages.where((e) => e.type == type).first;
 }
