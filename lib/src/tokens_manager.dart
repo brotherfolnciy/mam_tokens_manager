@@ -13,6 +13,9 @@ class TokensManager {
   static final StreamController<TokenType> _tokenRefreshErrorStreamController =
       StreamController<TokenType>.broadcast();
 
+  ///
+  /// Установка тестовых моков
+  ///
   static void setMockInitialValues(Map<String, String> values) {
     for (var e in _storages) {
       e.setMockInitialValues(values);
