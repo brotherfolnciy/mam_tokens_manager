@@ -1,4 +1,3 @@
-
 enum AuthenticationStatus {
   initial,
   unauthenticated,
