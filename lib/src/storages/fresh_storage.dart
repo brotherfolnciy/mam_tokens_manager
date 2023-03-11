@@ -1,9 +1,18 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fresh_dio/fresh_dio.dart';
 import 'package:logger/logger.dart';
+import 'package:tokens_manager/src/keys/keys.dart';
 import 'package:tokens_manager/tokens_manager.dart';
 
 const FlutterSecureStorage _flutterSecureStorage = FlutterSecureStorage();
+
+const Map<TokenType, String> tokensTypeWithKeyNames = {
+  TokenType.arm: armRefreshTokenKey,
+  TokenType.lp: memberLPRefreshTokenKey,
+  TokenType.oAuth: oAuthRefreshTokenKey,
+  TokenType.anonim: anonymousRefreshTokenKey,
+  TokenType.search: searchElementoRefreshTokenKey,
+};
 
 class TokensStorage extends TokenStorage<OAuth2Token> {
   TokensStorage({required TokenType type}) : _type = type;
