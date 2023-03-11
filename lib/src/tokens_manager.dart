@@ -4,6 +4,8 @@ import 'package:tokens_manager/tokens_manager.dart';
 import 'package:logger/logger.dart';
 import 'package:tokens_manager/src/storages/storages.dart';
 
+import 'models/tokens.dart';
+
 class TokensManager {
   static final Logger _logger = Logger();
 
@@ -11,115 +13,91 @@ class TokensManager {
   /// Установка тестовых моков
   ///
   static void setMockInitialValues(Map<String, String> values) {
-    for (var e in _storages) {
+    for (var e in _storages.values) {
       e.setMockInitialValues(values);
     }
   }
 
-  static Future<OAuth2Token?> Function(String)? _refreshTokenCallback;
+  static Future<Tokens?> Function(String)? _refreshTokenCallback;
 
-  static set refreshTokenCallback(
-          Future<OAuth2Token?> Function(String)? callback) =>
+  static set refreshTokenCallback(Future<Tokens?> Function(String)? callback) =>
       _refreshTokenCallback = callback;
 
-  ///
-  /// Рефреш токена
-  ///
-
-  static Future<OAuth2Token?> refreshToken(String refreshToken) async {
-    final refreshedTokens = await _refreshTokenCallback?.call(refreshToken);
-
-    String? refreshedAccessToken = refreshedTokens?.accessToken;
-    if (refreshedAccessToken?.isEmpty ?? false) refreshedAccessToken = null;
-
-    _logger.i(
-        'Refresh token: $refreshToken was refreshed and get Access: ${refreshedAccessToken?.substring(0, 30)}');
-
-    return refreshedTokens;
+  Future setTokens({
+    required String tokenName,
+    required Tokens tokens,
+  }) async {
+    await getFreshByTokenName(tokenName).setToken(tokens);
   }
 
-  ///
-  /// Получение экземпляра OAuthTokens с помощью access и refresh токенов
-  ///
-
-  static OAuth2Token convertTokensToTokensModel(
-    String accessToken,
-    String? refreshToken,
-  ) {
-    return OAuth2Token(accessToken: accessToken, refreshToken: refreshToken);
+  Future clearTokens({
+    required String tokenName,
+  }) async {
+    await getFreshByTokenName(tokenName).clearToken();
   }
 
-  ///
-  /// Токен ARM
-  ///
+  Future revokeTokens({
+    required String tokenName,
+  }) async {
+    await getFreshByTokenName(tokenName).revokeToken();
+  }
 
-  static final Fresh _armFresh =
-      createFreshInterceptor(TokenType.arm, _armTokensStorage);
+  Future<Tokens?> getTokens({
+    required String tokenName,
+  }) async {
+    return await _getTokensStorageByTokenName(tokenName).read();
+  }
 
-  static final TokensStorage _armTokensStorage =
-      TokensStorage(type: TokenType.arm);
+  static Future<Tokens> _refreshToken(Tokens? tokens, Dio dio) async {
+    try {
+      final refreshedTokens =
+          await _refreshTokenCallback?.call(tokens!.refreshToken!);
 
-  ///
-  /// Токен Client
-  ///
-  static final Fresh _lpFresh =
-      createFreshInterceptor(TokenType.arm, _armTokensStorage);
+      String? refreshedAccessToken = refreshedTokens?.accessToken;
+      if (refreshedAccessToken?.isEmpty ?? false) refreshedAccessToken = null;
 
-  static final TokensStorage _lpTokensStorage =
-      TokensStorage(type: TokenType.lp);
+      _logger.i(
+          'Refresh token: ${tokens!.refreshToken!} was refreshed and get Access: ${refreshedAccessToken?.substring(0, 30)}');
 
-  ///
-  /// Токен OAuth
-  ///
-  static final Fresh _oAuthFresh =
-      createFreshInterceptor(TokenType.arm, _armTokensStorage);
+      return refreshedTokens!;
+    } catch (e) {
+      return const Tokens();
+    }
+  }
 
-  static final TokensStorage _oAuthTokensStorage =
-      TokensStorage(type: TokenType.oAuth);
+  static Map<String, String> _getTokenHeader(Tokens token) {
+    return {
+      'Authorization': 'Bearer ${token.accessToken}',
+    };
+  }
 
-  ///
-  /// Токен Anonymous
-  ///
-  static final Fresh _anonimFresh =
-      createFreshInterceptor(TokenType.arm, _armTokensStorage);
+  static Fresh<Tokens> getFreshByTokenName(String tokenName) {
+    if (_freshes.containsKey(tokenName)) {
+      return _freshes[tokenName]!;
+    } else {
+      final fresh = Fresh<Tokens>(
+        tokenHeader: _getTokenHeader,
+        tokenStorage: _getTokensStorageByTokenName(tokenName),
+        refreshToken: _refreshToken,
+      );
+      _freshes[tokenName] = fresh;
+      return fresh;
+    }
+  }
 
-  static final TokensStorage _anonimTokensStorage =
-      TokensStorage(type: TokenType.anonim);
+  static TokensStorage _getTokensStorageByTokenName(String tokenName) {
+    if (_storages.containsKey(tokenName)) {
+      return _storages[tokenName]!;
+    } else {
+      final storage = TokensStorage(
+        tokenName: tokenName,
+      );
+      _storages[tokenName] = storage;
+      return storage;
+    }
+  }
 
-  ///
-  /// Токен SearchElemento
-  ///
-  static final Fresh _searchFresh =
-      createFreshInterceptor(TokenType.arm, _armTokensStorage);
+  static final Map<String, TokensStorage> _storages = {};
 
-  static final TokensStorage _searchTokensStorage =
-      TokensStorage(type: TokenType.search);
-
-  // Tokens Storages
-
-  static final List<TokensStorage> _storages = [
-    _armTokensStorage,
-    _lpTokensStorage,
-    _oAuthTokensStorage,
-    _anonimTokensStorage,
-    _searchTokensStorage
-  ];
-
-  // Freshes
-
-  static final _freshes = {
-    TokenType.arm: _armFresh,
-    TokenType.lp: _lpFresh,
-    TokenType.oAuth: _oAuthFresh,
-    TokenType.anonim: _anonimFresh,
-    TokenType.search: _searchFresh,
-  };
-
-  ///
-  /// Получение экземпляра Fresh по типу токена
-  ///
-  static Fresh getFreshByType(
-    TokenType type,
-  ) =>
-      _freshes[type]!;
+  static final Map<String, Fresh<Tokens>> _freshes = {};
 }

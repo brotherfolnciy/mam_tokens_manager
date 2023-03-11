@@ -1,29 +1,21 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fresh_dio/fresh_dio.dart';
 import 'package:logger/logger.dart';
-import 'package:tokens_manager/src/keys/keys.dart';
+import 'package:tokens_manager/src/models/tokens.dart';
 import 'package:tokens_manager/tokens_manager.dart';
 
 const FlutterSecureStorage _flutterSecureStorage = FlutterSecureStorage();
 
-const Map<TokenType, String> tokensTypeWithKeyNames = {
-  TokenType.arm: armRefreshTokenKey,
-  TokenType.lp: memberLPRefreshTokenKey,
-  TokenType.oAuth: oAuthRefreshTokenKey,
-  TokenType.anonim: anonymousRefreshTokenKey,
-  TokenType.search: searchElementoRefreshTokenKey,
-};
-
-class TokensStorage extends TokenStorage<OAuth2Token> {
-  TokensStorage({required TokenType type}) : _type = type;
+class TokensStorage extends TokenStorage<Tokens> {
+  TokensStorage({required String tokenName}) : _tokenName = tokenName;
 
   final Logger _logger = Logger();
 
-  final TokenType _type;
+  final String _tokenName;
 
-  TokenType get type => _type;
+  String get tokenName => _tokenName;
 
-  late final String _refreshTokenKey = tokensTypeWithKeyNames[_type]!;
+  late final String _refreshTokenKey = '${_tokenName}_refresh_token';
 
   String? _accessToken;
 
@@ -43,16 +35,15 @@ class TokensStorage extends TokenStorage<OAuth2Token> {
     await _flutterSecureStorage.delete(key: _refreshTokenKey);
 
     _logger.i(
-        '$type | Access: ${_accessToken?.substring(0, 30)} and Refresh: $_refreshToken tokens was deleted');
+        '$_tokenName | Access: ${_accessToken?.substring(0, 30)} and Refresh: $_refreshToken tokens was deleted');
   }
 
   @override
-  Future<OAuth2Token?> read() async {
+  Future<Tokens?> read() async {
     final refreshToken =
         await _flutterSecureStorage.read(key: _refreshTokenKey);
 
-    return OAuth2Token(
-        accessToken: _accessToken ?? '', refreshToken: refreshToken);
+    return Tokens(accessToken: _accessToken ?? '', refreshToken: refreshToken);
   }
 
   @override
@@ -66,6 +57,6 @@ class TokensStorage extends TokenStorage<OAuth2Token> {
         key: _refreshTokenKey, value: token.refreshToken);
 
     _logger.i(
-        '$type | Access: ${_accessToken?.substring(0, 30)} and Refresh: $_refreshToken tokens was writed');
+        '$_tokenName | Access: ${_accessToken?.substring(0, 30)} and Refresh: $_refreshToken tokens was writed');
   }
 }
