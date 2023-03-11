@@ -23,26 +23,26 @@ class TokensManager {
   static set refreshTokenCallback(Future<Tokens?> Function(String)? callback) =>
       _refreshTokenCallback = callback;
 
-  Future setTokens({
+  static Future setTokens({
     required String tokenName,
     required Tokens tokens,
   }) async {
     await getFreshByTokenName(tokenName).setToken(tokens);
   }
 
-  Future clearTokens({
+  static Future clearTokens({
     required String tokenName,
   }) async {
     await getFreshByTokenName(tokenName).clearToken();
   }
 
-  Future revokeTokens({
+  static Future revokeTokens({
     required String tokenName,
   }) async {
     await getFreshByTokenName(tokenName).revokeToken();
   }
 
-  Future<Tokens?> getTokens({
+  static Future<Tokens?> getTokens({
     required String tokenName,
   }) async {
     return await _getTokensStorageByTokenName(tokenName).read();
