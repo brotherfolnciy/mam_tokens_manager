@@ -1,9 +1,8 @@
 import 'dart:async';
 
 import 'package:fresh_dio/fresh_dio.dart' hide AuthenticationStatus;
-import 'enums/enums.dart';
+import 'package:tokens_manager/tokens_manager.dart';
 import 'package:logger/logger.dart';
-import 'package:tokens_manager/src/models/tokens.dart';
 import 'package:tokens_manager/src/storages/storages.dart';
 
 class TokensManager {
@@ -18,25 +17,17 @@ class TokensManager {
     }
   }
 
-  ///
-  /// Изменение статуса авторизации для какого-либо токена
-  ///
-  static void changeAuthenticationStatus({
-    required TokenType type,
-    required AuthenticationStatus status,
-  }) =>
-      _getAuthenticationStatusControllerByType(type).add(status);
+  static Future<OAuth2Token?> Function(String)? _refreshTokenCallback;
 
-  static Future<Tokens?> Function(String)? _refreshTokenCallback;
-
-  static set refreshTokenCallback(Future<Tokens?> Function(String)? callback) =>
+  static set refreshTokenCallback(
+          Future<OAuth2Token?> Function(String)? callback) =>
       _refreshTokenCallback = callback;
 
   ///
   /// Рефреш токена
   ///
 
-  static Future<Tokens?> refreshToken(String refreshToken) async {
+  static Future<OAuth2Token?> refreshToken(String refreshToken) async {
     final refreshedTokens = await _refreshTokenCallback?.call(refreshToken);
 
     String? refreshedAccessToken = refreshedTokens?.accessToken;
@@ -62,12 +53,11 @@ class TokensManager {
   ///
   /// Токен ARM
   ///
+  static final Fresh _armFresh =
+      createFreshInterceptor(TokenType.arm, _armTokensStorage);
 
   static final TokensStorage _armTokensStorage =
       TokensStorage(type: TokenType.arm);
-
-  static final StreamController<AuthenticationStatus>
-      _armAuthenticationStatusController = StreamController();
 
   ///
   /// Токен Client
@@ -76,18 +66,12 @@ class TokensManager {
   static final TokensStorage _lpTokensStorage =
       TokensStorage(type: TokenType.lp);
 
-  static final StreamController<AuthenticationStatus>
-      _lpAuthenticationStatusController = StreamController();
-
   ///
   /// Токен OAuth
   ///
 
   static final TokensStorage _oAuthTokensStorage =
       TokensStorage(type: TokenType.oAuth);
-
-  static final StreamController<AuthenticationStatus>
-      _oAuthAuthenticationStatusController = StreamController();
 
   ///
   /// Токен Anonymous
@@ -96,18 +80,12 @@ class TokensManager {
   static final TokensStorage _anonimTokensStorage =
       TokensStorage(type: TokenType.anonim);
 
-  static final StreamController<AuthenticationStatus>
-      _anonimAuthenticationStatusController = StreamController();
-
   ///
   /// Токен SearchElemento
   ///
 
   static final TokensStorage _searchTokensStorage =
       TokensStorage(type: TokenType.search);
-
-  static final StreamController<AuthenticationStatus>
-      _searchAuthenticationStatusController = StreamController();
 
   // Tokens Storages
 
@@ -119,36 +97,17 @@ class TokensManager {
     _searchTokensStorage
   ];
 
-  // Auth Status Controllers Storages
+  // Freshes
 
-  static final _authenticationStatusControllers = {
-    TokenType.arm: _armAuthenticationStatusController,
-    TokenType.lp: _lpAuthenticationStatusController,
-    TokenType.oAuth: _oAuthAuthenticationStatusController,
-    TokenType.anonim: _anonimAuthenticationStatusController,
-    TokenType.search: _searchAuthenticationStatusController,
+  static final _freshes = {
+    TokenType.arm: _armFresh,
   };
 
   ///
-  /// Получение экземпляра TokensStorage по типу токена
+  /// Получение экземпляра Fresh по типу токена
   ///
-
-  static TokensStorage storageByType(TokenType type) =>
-      _storages.where((e) => e.type == type).first;
-
-  ///
-  /// Получение экземпляра Stream<AuthenticationStatus> по типу токена
-  ///
-  static Stream<AuthenticationStatus> getAuthenticationStatusByType(
-          TokenType type) =>
-      _getAuthenticationStatusControllerByType(type).stream.asBroadcastStream();
-
-  ///
-  /// Получение экземпляра StreamController<AuthenticationStatus> по типу токена
-  ///
-  static StreamController<AuthenticationStatus>
-      _getAuthenticationStatusControllerByType(
+  static Fresh getFreshByType(
     TokenType type,
   ) =>
-          _authenticationStatusControllers[type]!;
+      _freshes[type]!;
 }
