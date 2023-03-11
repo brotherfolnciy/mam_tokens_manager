@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:fresh_dio/fresh_dio.dart' hide AuthenticationStatus;
 import 'package:tokens_manager/tokens_manager.dart';
 import 'package:logger/logger.dart';
@@ -53,6 +52,7 @@ class TokensManager {
   ///
   /// Токен ARM
   ///
+
   static final Fresh _armFresh =
       createFreshInterceptor(TokenType.arm, _armTokensStorage);
 
@@ -62,6 +62,8 @@ class TokensManager {
   ///
   /// Токен Client
   ///
+  static final Fresh _lpFresh =
+      createFreshInterceptor(TokenType.arm, _armTokensStorage);
 
   static final TokensStorage _lpTokensStorage =
       TokensStorage(type: TokenType.lp);
@@ -69,6 +71,8 @@ class TokensManager {
   ///
   /// Токен OAuth
   ///
+  static final Fresh _oAuthFresh =
+      createFreshInterceptor(TokenType.arm, _armTokensStorage);
 
   static final TokensStorage _oAuthTokensStorage =
       TokensStorage(type: TokenType.oAuth);
@@ -76,6 +80,8 @@ class TokensManager {
   ///
   /// Токен Anonymous
   ///
+  static final Fresh _anonimFresh =
+      createFreshInterceptor(TokenType.arm, _armTokensStorage);
 
   static final TokensStorage _anonimTokensStorage =
       TokensStorage(type: TokenType.anonim);
@@ -83,6 +89,8 @@ class TokensManager {
   ///
   /// Токен SearchElemento
   ///
+  static final Fresh _searchFresh =
+      createFreshInterceptor(TokenType.arm, _armTokensStorage);
 
   static final TokensStorage _searchTokensStorage =
       TokensStorage(type: TokenType.search);
@@ -101,6 +109,10 @@ class TokensManager {
 
   static final _freshes = {
     TokenType.arm: _armFresh,
+    TokenType.lp: _lpFresh,
+    TokenType.oAuth: _oAuthFresh,
+    TokenType.anonim: _anonimFresh,
+    TokenType.search: _searchFresh,
   };
 
   ///
