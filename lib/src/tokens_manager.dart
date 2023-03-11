@@ -1,10 +1,9 @@
 import 'dart:async';
-import 'package:fresh_dio/fresh_dio.dart' hide AuthenticationStatus;
+import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:tokens_manager/tokens_manager.dart';
 import 'package:logger/logger.dart';
 import 'package:tokens_manager/src/storages/storages.dart';
-
-import 'models/tokens.dart';
 
 class TokensManager {
   static final Logger _logger = Logger();
@@ -12,10 +11,10 @@ class TokensManager {
   ///
   /// Установка тестовых моков
   ///
+  @visibleForTesting
   static void setMockInitialValues(Map<String, String> values) {
-    for (var e in _storages.values) {
-      e.setMockInitialValues(values);
-    }
+    // ignore: invalid_use_of_visible_for_testing_member
+    FlutterSecureStorage.setMockInitialValues(values);
   }
 
   static Future<Tokens?> Function(String)? _refreshTokenCallback;
