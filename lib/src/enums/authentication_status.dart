@@ -1,5 +1,5 @@
-enum AuthenticationStatus {
-  initial,
-  unauthenticated,
-  authenticated,
-}
+// enum AuthenticationStatus {
+//   initial,
+//   unauthenticated,
+//   authenticated,
+// }
