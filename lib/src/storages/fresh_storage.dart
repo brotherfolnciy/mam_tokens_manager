@@ -36,7 +36,11 @@ class TokensStorage extends TokenStorage<Tokens> {
     final refreshToken =
         await _flutterSecureStorage.read(key: _refreshTokenKey);
 
-    return Tokens(accessToken: _accessToken ?? '', refreshToken: refreshToken);
+    if (refreshToken != null) {
+      return Tokens(accessToken: _accessToken, refreshToken: refreshToken);
+    } else {
+      return null;
+    }
   }
 
   @override
